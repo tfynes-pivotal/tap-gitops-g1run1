@@ -1,0 +1,51 @@
+tap_install:
+  values:
+    excluded_packages: []
+    shared:
+      ingress_domain: g1.fynesy.com
+      ingress_issuer: letsencrypt-production
+    ceip_policy_disclosed: true
+    profile: run
+    supply_chain: basic
+    contour:
+      envoy:
+        service:
+          type: LoadBalancer
+    appliveview_connector:
+      backend:
+        sslDeactivated: false
+        ingressEnabled: true
+        host: appliveview.g1.fynesy.com
+    amr:
+      observer:
+        auth:
+          kubernetes_service_accounts:
+            enable: true
+        cloudevent_handler:
+          endpoint: https://amr-cloudevent-handler.a3.fynesy.com
+    cnrs:
+      domain_template: '{{.Name}}-{{.Namespace}}.{{.Domain}}'
+    namespace_provisioner:
+      controller: false
+      gitops_install:
+        ref: origin/main
+        subPath: clusters/taplab/cluster-config/namespaces
+        url: https://github.com/tfynes-pivotal/tap-gitops-g1run1
+        secretRef:
+          name: git-auth
+          namespace: tap-install
+          create_export: true
+      additional_sources:
+      - git:
+          ref: origin/main
+          subPath: clusters/taplab/cluster-config/namespaces/namespace-resources
+          url: https://github.com/tfynes-pivotal/tap-gitops-g1run1
+          secretRef:
+            name: git-auth-install
+            namespace: tap-install
+            create_export: true
+        path: _ytt_lib/namespace-resources
+      default_parameters:
+        supply_chain_service_account:
+          secrets:
+          - workload-git-auth
